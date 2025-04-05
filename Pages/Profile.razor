@@ -1,0 +1,71 @@
+﻿@page "/profile"
+@inject UserService UserService
+@inject NavigationManager Navigation
+
+<h2>Profilul Meu</h2>
+
+@if (!UserService.IsLoggedIn)
+{
+    <p>Nu sunteți autentificat. <a href="/login">Autentificați-vă aici</a>.</p>
+}
+else
+{
+    <div>
+        <p><strong>Email:</strong> @UserService.CurrentUser?.Email</p>
+
+        <div>
+            <h3>Nume</h3>
+            <InputText @bind-Value="firstName" placeholder="Introduceți numele" />
+            <button @onclick="SaveFirstName">Salvează</button>
+        </div>
+
+        <div>
+            <h3>Prenume</h3>
+            <InputText @bind-Value="lastName" placeholder="Introduceți prenumele" />
+            <button @onclick="SaveLastName">Salvează</button>
+        </div>
+
+        <div>
+            <h3>Număr de telefon</h3>
+            <InputText @bind-Value="phoneNumber" placeholder="Introduceți numărul de telefon" />
+            <button @onclick="SavePhoneNumber">Salvează</button>
+        </div>
+
+        <div>
+            <h3>Adresa de livrare</h3>
+            <InputText @bind-Value="deliveryAddress" placeholder="Introduceți adresa de livrare" />
+            <button @onclick="SaveAddress">Salvează</button>
+        </div>
+
+        <button @onclick="Logout">Deconectare</button>
+    </div>
+}
+
+@code {
+    private string firstName = "";
+    private string lastName = "";
+    private string phoneNumber = "";
+    private string deliveryAddress = "";
+
+    protected override void OnInitialized()
+    {
+        if (UserService.CurrentUser != null)
+        {
+            firstName = UserService.CurrentUser.FirstName;
+            lastName = UserService.CurrentUser.LastName;
+            phoneNumber = UserService.CurrentUser.PhoneNumber;
+            deliveryAddress = UserService.CurrentUser.DeliveryAddress;
+        }
+    }
+
+    private void SaveFirstName() => UserService.UpdateFirstName(firstName);
+    private void SaveLastName() => UserService.UpdateLastName(lastName);
+    private void SavePhoneNumber() => UserService.UpdatePhoneNumber(phoneNumber);
+    private void SaveAddress() => UserService.UpdateDeliveryAddress(deliveryAddress);
+
+    private void Logout()
+    {
+        UserService.Logout();
+        Navigation.NavigateTo("/");
+    }
+}

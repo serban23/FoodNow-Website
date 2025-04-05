@@ -1,0 +1,68 @@
+﻿@page "/signup"
+@inject UserService UserService
+@inject NavigationManager Navigation
+
+<h2>Înregistrare</h2>
+
+@if (!isRegistered)
+{
+    <form>
+        <div>
+            <label>Email:</label>
+            <input @bind="email" type="email" placeholder="Introduceți email-ul" />
+        </div>
+        <div>
+            <label>Parolă:</label>
+            <input @bind="password" type="password" placeholder="Introduceți parola" />
+        </div>
+        <div>
+            <label>Rol:</label>
+            <select @bind="role">
+                <option value="">Selectați un rol</option>
+                <option value="Client">Client</option>
+                <option value="Curier">Curier</option>
+            </select>
+        </div>
+        <button type="button" @onclick="Register">Înregistrează-te</button>
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <p style="color:red;">@errorMessage</p>
+        }
+    </form>
+}
+else
+{
+    <p>Înregistrare reușită! <a href="/profile">Mergi la profil</a>.</p>
+}
+
+@code {
+    private string email = string.Empty;
+    private string password = string.Empty;
+    private string role = string.Empty;
+    private bool isRegistered = false;
+    private string errorMessage = string.Empty;
+
+    private void Register()
+    {
+        if (string.IsNullOrEmpty(role))
+        {
+            errorMessage = "Trebuie să selectați un rol.";
+            return;
+        }
+
+        if (UserService.Register(email, password, role))
+        {
+            isRegistered = true;
+
+            // Setează utilizatorul curent
+            UserService.Login(email, password);
+
+            // Navighează către profil
+            Navigation.NavigateTo("/profile");
+        }
+        else
+        {
+            errorMessage = "Acest email este deja înregistrat.";
+        }
+    }
+}

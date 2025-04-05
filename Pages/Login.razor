@@ -1,0 +1,41 @@
+﻿@page "/login"
+@inject UserService UserService
+@inject NavigationManager Navigation
+
+<h2>Autentificare</h2>
+
+<form>
+    <div>
+        <label>Email:</label>
+        <input @bind="email" type="email" placeholder="Introduceți email-ul" />
+    </div>
+    <div>
+        <label>Parolă:</label>
+        <input @bind="password" type="password" placeholder="Introduceți parola" />
+    </div>
+    <button type="button" @onclick="Log">Autentificare</button>
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <p style="color:red;">@errorMessage</p>
+    }
+    <p>Nu aveți un cont? <a href="/signup">Înregistrați-vă aici</a>.</p>
+</form>
+
+@code {
+    private string email = string.Empty;
+    private string password = string.Empty;
+    private string role = string.Empty; // Rolul selectat
+    private string errorMessage = string.Empty;
+
+    private void Log()
+    {
+        if (UserService.Login(email, password))
+        {
+            Navigation.NavigateTo("/profile");
+        }
+        else
+        {
+            errorMessage = "Email, parolă sau rol incorect.";
+        }
+    }
+}

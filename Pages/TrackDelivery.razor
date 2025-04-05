@@ -1,0 +1,84 @@
+﻿@page "/track-delivery"
+@inject IJSRuntime JSRuntime
+@inject ShoppingCartService CartService
+@inject RestaurantService RestaurantService
+@inject UserService UserService
+
+<h2>Monitorizare Livrări</h2>
+
+@if (CartService.LastOrder == null)
+{
+    <p>Nu există nicio comandă activă. <a href="/">Înapoi la pagina principală</a>.</p>
+}
+else
+{
+    <p>Status: Livrare în curs</p>
+    <h4>Comanda #@GetOrderNumber()</h4>
+    <ul>
+        @foreach (var item in CartService.LastOrder.Items)
+        {
+            <li>@item.Name - @item.Quantity x @item.Cost RON</li>
+        }
+    </ul>
+    <h4>Total: @CartService.LastOrder.Cost RON</h4>
+
+    <h4>Adresă de livrare:</h4>
+    <p>@DeliveryAddress</p>
+
+    <h4>Adresă restaurant:</h4>
+    <p>@RestaurantAddress</p>
+
+    <div id="map" style="width: 100%; height: 600px; border: 1px solid black;"></div>
+}
+
+@code {
+    private string GetOrderNumber()
+    {
+        return new Random().Next(1000, 9999).ToString();
+    }
+
+    private string RestaurantAddress => GetRestaurantAddress();
+    private string DeliveryAddress => UserService.CurrentUser?.DeliveryAddress ?? "Adresa nedisponibilă";
+
+    private string GetRestaurantAddress()
+    {
+        // Verificăm dacă comanda are produse și extragem RestaurantId-ul din primul produs
+        var restaurantId = CartService.LastOrder?.Items.FirstOrDefault()?.IdRestaurant;
+
+        if (restaurantId.HasValue)
+        {
+            var restaurant = RestaurantService.GetRestaurantById(restaurantId.Value);
+            return restaurant?.Address ?? "Adresa restaurantului necunoscută";
+        }
+
+        return "Restaurant necunoscut";
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && UserService.CurrentUser != null)
+        {
+            await JSRuntime.InvokeVoidAsync("initMap");
+            await WaitForMapInteropAsync();
+            await JSRuntime.InvokeVoidAsync("window.MapInterop.showRoute", RestaurantAddress, DeliveryAddress);
+        }
+    }
+
+    private async Task WaitForMapInteropAsync()
+    {
+        while (true)
+        {
+            try
+            {
+                bool mapInteropLoaded = await JSRuntime.InvokeAsync<bool>("window.hasOwnProperty", "MapInterop");
+                if (mapInteropLoaded)
+                {
+                    break;
+                }
+            }
+            catch { }
+
+            await Task.Delay(500);
+        }
+    }
+}

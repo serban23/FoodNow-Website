@@ -1,0 +1,33 @@
+﻿@page "/"
+@inject RestaurantService RestaurantService
+@inject NavigationManager Navigation
+@using FoodNow.Models
+
+<h1>Restaurante Disponibile</h1>
+
+<div class="restaurants">
+    @foreach (var restaurant in restaurants)
+    {
+        <div class="restaurant-card">
+            <h3>@restaurant.Name</h3>
+            <p>@restaurant.Description</p>
+            <p><strong>Adresa:</strong> @restaurant.Address</p>
+            <button @onclick="() => NavigateToMenu(restaurant.Id)">Vezi Meniul</button>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Restaurant> restaurants = new();
+
+    protected override void OnInitialized()
+    {
+        // Obținem restaurantele din RestaurantService
+        restaurants = RestaurantService.GetAllRestaurants();
+    }
+
+    private void NavigateToMenu(int restaurantId)
+    {
+        Navigation.NavigateTo($"/menu/{restaurantId}");
+    }
+}

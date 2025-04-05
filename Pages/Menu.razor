@@ -1,0 +1,48 @@
+﻿@page "/menu/{RestaurantId:int}"
+@inject ShoppingCartService CartService
+@inject RestaurantService RestaurantService
+@inject NavigationManager Navigation
+@using FoodNow.Models
+
+<h2>Meniul Restaurantului</h2>
+
+@if (menuItems == null)
+{
+    <p>Se încarcă meniul...</p>
+}
+else
+{
+    <h3>@restaurant.Name</h3>
+    <p><strong>Adresa:</strong> @restaurant.Address</p>
+    <ul>
+        @foreach (var item in menuItems)
+        {
+            <li>
+                <strong>@item.Name</strong> - @item.Cost RON
+                <p>@item.Description</p>
+                <button @onclick="() => AddToCart(item)">Adaugă în coș</button>
+            </li>
+        }
+    </ul>
+}
+
+<a href="/cart">Vezi coșul</a>
+
+@code {
+    [Parameter] public int RestaurantId { get; set; }
+
+    private Restaurant? restaurant;
+    private List<Product>? menuItems;
+
+    protected override void OnInitialized()
+    {
+        restaurant = RestaurantService.GetRestaurantById(RestaurantId);
+        // Obține produsele din RestaurantService pentru restaurantul curent
+        menuItems = RestaurantService.GetProductsByRestaurantId(RestaurantId);
+    }
+
+    private void AddToCart(Product item)
+    {
+        CartService.AddToCart(item);
+    }
+}

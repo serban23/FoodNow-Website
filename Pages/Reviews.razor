@@ -1,0 +1,46 @@
+﻿@page "/reviews"
+
+<h2>Recenzii</h2>
+
+@if (reviews.Count == 0)
+{
+    <p>Nu există recenzii momentan. Fii primul care lasă una!</p>
+}
+else
+{
+    <ul>
+        @foreach (var review in reviews)
+        {
+            <li><strong>@review.UserName:</strong> @review.Content</li>
+        }
+    </ul>
+}
+
+<h3>Adaugă o recenzie</h3>
+<form @onsubmit="SubmitReview">
+    <input type="text" placeholder="Numele tău" @bind="userName" required />
+    <textarea placeholder="Scrie recenzia ta aici..." @bind="reviewText" required></textarea>
+    <button type="submit">Trimite</button>
+</form>
+
+@code {
+    private List<Review> reviews = new();
+    private string userName = "";
+    private string reviewText = "";
+
+    private void SubmitReview()
+    {
+        if (!string.IsNullOrWhiteSpace(userName) && !string.IsNullOrWhiteSpace(reviewText))
+        {
+            reviews.Add(new Review { UserName = userName, Content = reviewText });
+            userName = "";
+            reviewText = "";
+        }
+    }
+
+    private class Review
+    {
+        public string UserName { get; set; } = "";
+        public string Content { get; set; } = "";
+    }
+}

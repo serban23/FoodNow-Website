@@ -1,0 +1,79 @@
+﻿@page "/cart"
+@inject ShoppingCartService CartService
+@inject UserService UserService
+@inject NavigationManager Navigation
+
+<h2>Coșul de Cumpărături</h2>
+
+@if (!CartService.CartItems.Any())
+{
+    <p>Coșul tău este gol. <a href="/">Înapoi la pagina principală</a></p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Produs</th>
+                <th>Preț</th>
+                <th>Cantitate</th>
+                <th>Total</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in CartService.CartItems)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.Cost RON</td>
+                    <td>@item.Quantity</td>
+                    <td>@(item.Cost * item.Quantity) RON</td>
+                    <td><button @onclick="() => RemoveFromCart(item.Name)">Elimină</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h3>Total: @CartService.GetTotal() RON</h3>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <p style="color: red;">@errorMessage</p>
+    }
+
+    <button @onclick="PlaceOrder">Plasează Comanda</button>
+}
+
+@code {
+    private string errorMessage = string.Empty;
+
+    private void RemoveFromCart(string name)
+    {
+        CartService.RemoveFromCart(name);
+    }
+
+    private void PlaceOrder()
+    {
+        if (UserService.CurrentUser == null)
+        {
+            errorMessage = "Trebuie să fii autentificat pentru a plasa o comandă!";
+            return;
+        }
+
+        if (UserService.CurrentUser.Role != "Client")
+        {
+            errorMessage = "Doar utilizatorii cu rolul 'Client' pot plasa comenzi!";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(UserService.CurrentUser.DeliveryAddress))
+        {
+            errorMessage = "Trebuie să ai o adresă de livrare setată în profil!";
+            return;
+        }
+
+        CartService.PlaceOrder();
+        Navigation.NavigateTo("/track-delivery");
+    }
+}
